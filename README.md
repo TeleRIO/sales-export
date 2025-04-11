@@ -17,7 +17,7 @@ Ela é feita por uma ApiKey que você receberá por e-mail assim que sua conta f
 ## Endpoints
 Também serão enviados por e-mail assim que sua conta for criada.
 
-
+## Tabelas
 ### FILIAL
 Faça uma carga inicial completa das filiais e cargas recorrentes semanais, para buscar possíveis atualizações. Na tabela das filiais, temos uma coluna com o TIMESTAMP em que foi feita a última atualização. Nas buscas semanais, basta pesquisar pelas filiais que tenham tal data maior ou igual a maior data que você tem na sua base. Dessa forma, você trará apenas os dados incrementais, para UPSERT local. No script ./bash/tabela-filial.sh, é possível ver exemplos de como fazer a carga FULL e como fazer tais cargas incrementais.
 
@@ -25,7 +25,7 @@ Faça uma carga inicial completa das filiais e cargas recorrentes semanais, para
 Faça carga inicial completa dos funcionários e cargas incrementais semanais e diárias. A carga semanal pode ser feita buscando funcionários admitidos ou demitidos desde sua última carga semanal. Tal atualização garantirá que os novos colaboradores e colaboradores desligados sejam atualizados na sua base local. Diariamente, quando você fizer a carga das vendas, sugerimos que pra todos os códigos de vendedores que sejam listados, você faça a busca por ele nessa API. Isso vai garantir que as movimentações de colaboradores entre filiais, ou mudanças de cargo sejam atualizadas na sua base local. No script ./bash/tabela-funcionario.sh, é possível ver exemplos de como fazer a carga FULL e como fazer tais cargas incrementais.
 
 #### ***ATENÇÃO***
-A associação dos funcionários às filiais em que trabalha pode ser obtida pelo código da filial. Essa associação funciona com todos os cargos, menos no caso dos supervisores, pois a associação deles não é com uma única filial, mas sim pela regional que eles supervisionam. Nesses casos, a identificação das filiais associadas ao supervisor envolve a listagem das filiais, que possue a identificação da regional, e a listagem dos supervisores, que também possuem a identificação da regional. Através dessa informação, você conseguirá associar os supervisores às filiais que eles supervisionam.
+A associação dos funcionários às filiais em que trabalha pode ser obtida pelo código da filial. Essa associação funciona com todos os cargos, menos no caso dos supervisores, pois a associação deles não é com uma única filial, mas sim pela regional que eles supervisionam. Nesses casos, a identificação das filiais associadas ao supervisor envolve a listagem das filiais, que possui a identificação da regional, e a listagem dos supervisores, que também possuem a identificação da regional. Através dessa informação você conseguirá associar os supervisores às filiais que eles supervisionam.
 
 ### SALDO_PRODUTO
 Faça a carga inicial completa dos produtos com seus saldos em estoque por filial e cargas incrementais diárias, buscando pelos produtos que foram listados como vendidos na busca das vendas. No script ./bash/tabela-saldo_produto.sh, é possível ver exemplos de como fazer a carga FULL e como fazer tais cargas incrementais.
