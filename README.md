@@ -24,7 +24,7 @@ Faça uma carga inicial completa das filiais e cargas recorrentes semanais, para
 ### FUNCIONARIO
 Faça carga inicial completa dos funcionários e cargas incrementais semanais e diárias. A carga semanal pode ser feita buscando funcionários admitidos ou demitidos desde sua última carga semanal. Tal atualização garantirá que os novos colaboradores e colaboradores desligados sejam atualizados na sua base local. Diariamente, quando você fizer a carga das vendas, sugerimos que pra todos os códigos de vendedores que sejam listados, você faça a busca por ele nessa API. Isso vai garantir que as movimentações de colaboradores entre filiais, ou mudanças de cargo sejam atualizadas na sua base local. No script ./bash/tabela-funcionario.sh, é possível ver exemplos de como fazer a carga FULL e como fazer tais cargas incrementais.
 
-#### ***ATENÇÃO***
+##### ***ATENÇÃO***
 A associação dos funcionários às filiais em que trabalha pode ser obtida pelo código da filial. Essa associação funciona com todos os cargos, menos no caso dos supervisores, pois a associação deles não é com uma única filial, mas sim pela regional que eles supervisionam. Nesses casos, a identificação das filiais associadas ao supervisor envolve a listagem das filiais, que possui a identificação da regional, e a listagem dos supervisores, que também possuem a identificação da regional. Através dessa informação você conseguirá associar os supervisores às filiais que eles supervisionam.
 
 ### SALDO_PRODUTO
