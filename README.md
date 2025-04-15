@@ -34,6 +34,84 @@ Faça a carga inicial completa dos produtos com seus saldos em estoque por filia
 A carga completa trará as vendas faturadas ou não desde 01/JAN/2025, das marcas associadas à sua conta. Diariamente, faça duas buscas. Uma que será pela dt_emissao igual a data de ontem, de forma que você verá todas as vendas do dia anterior. Não armazene esses dados, mas os utilize para buscar os dados incrementais de funcionários e saldo dos produtos. Em seguida faça a segunda busca, dessa vez pela dt_faturamento igual a data de ontem. Esses são os dados que você deverá armazenar como as vendas efetivadas. Por essa segunda pesquisa, você poderá processar o seu programa de pontos, por exemplo. No script ./bash/tabela-venda.sh, é possível ver exemplos de como fazer a carga FULL e como fazer tais cargas incrementais.
 
 
+## Exemplo de uso
+A API funciona de forma assíncrona. Primeiro você faz a requisição, indicando qual a tabela, e quais os filtros são aplicáveis. Você receberá como resposta o status de execução da query e seu ID. 
+
+```bash
+#!/bin/bash
+
+API_ENDPOINT=""
+API_KEY=""
+PAYLOAD="{ \"query\": \"filial\", \"filtros\": { \"statusfilial\": \"ATIVA\" } }"
+
+curl -X POST -s -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" -d "$PAYLOAD" "$API_ENDPOINT"
+
+```
+
+Resposta:
+```json
+{
+  "query_exec_id": "2396fbae-19f9-11f0-b718-00155d05f688",
+  "status": "QUEUED"
+}
+```
+
+Em seguida, você deve consultar o status da execução, utilizando tal ID de execução. Dependendo da tabela e do volume de dados requisitados, pode ser que a query demore menos ou mais tempo para que seja executada. E isso significa que você pode ter que consultar o status da execução mais de uma vez. Considere executar um loop requisitando o status com sleep de 1s a 5s entre as iterações. Os possíveis status são: QUEUED, RUNNING, SUCCEEDED, FAILED, CANCELLED. Caso você veja como resposta as opções QUEUED ou RUNNING, você deve continuar consultando o status. Caso você veja como resposta as opções SUCCEEDED, FAILED ou CANCELLED, você já tem o status final da execução da query. 
+
+```bash
+#!/bin/bash
+
+API_ENDPOINT=""
+API_KEY=""
+PAYLOAD="{ \"query_exec_id\": \"2396fbae-19f9-11f0-b718-00155d05f688\" }"
+
+curl -X POST -s -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" -d "$PAYLOAD" "$API_ENDPOINT"
+```
+
+Resposta:
+```json
+{
+  "query_exec_id": "2396fbae-19f9-11f0-b718-00155d05f688",
+  "status": "SUCCEEDED",
+  "page": 1,
+  "total_pages": 10,
+  "total_results": 1000,
+  "rows": [
+    ...
+  ]
+}
+```
+
+Pelos valores de PAGE, TOTAL_PAGES e TOTAL_RESULTS, você consegue saber quantas páginas de dados você tem. Cada página tem por padrão até 100 linhas. Para buscar as próximas páginas, identifique qual página você precisa, repetindo a busca pelo ID da query.
+
+```bash
+#!/bin/bash
+
+API_ENDPOINT=""
+API_KEY=""
+PAYLOAD="{ \"query_exec_id\": \"2396fbae-19f9-11f0-b718-00155d05f688\", \"page\": 2 }"
+
+curl -X POST -s -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" -d "$PAYLOAD" "$API_ENDPOINT"
+```
+
+Resposta:
+```json
+{
+  "query_exec_id": "2396fbae-19f9-11f0-b718-00155d05f688",
+  "status": "SUCCEEDED",
+  "page": 2,
+  "total_pages": 10,
+  "total_results": 1000,
+  "rows": [
+    ...
+  ]
+}
+```
+
+
+
+
+
 
 ### Bom trabalho!
 ### Marcelo Sequeiros
