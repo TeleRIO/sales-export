@@ -17,6 +17,12 @@ Ela é feita por uma ApiKey que você receberá por e-mail assim que sua conta f
 ## Endpoints
 Também serão enviados por e-mail assim que sua conta for criada.
 
+## Quotas
+A API tem um limite de uso de 500 requisições por dia, sendo que é possível fazer até 10 requisições por segundo, sendo até 10 simultaneas. Caso você ultrapasse esse limite, você receberá um erro 429, indicando que o limite de uso foi excedido. Nesse caso, você deve aguardar até o dia seguinte para fazer novas requisições.
+
+Se você ainda está em fase de desenvolvimento e testes, e tem excedido sua quota de forma recorrente, impedindo seu avanço, peça nossa ajuda, que buscaremos uma solução temporária.
+
+
 ## Tabelas
 ### FILIAL
 Faça uma carga inicial completa das filiais e cargas recorrentes semanais, para buscar possíveis atualizações. Na tabela das filiais, temos uma coluna com o TIMESTAMP em que foi feita a última atualização. Nas buscas semanais, basta pesquisar pelas filiais que tenham tal data maior ou igual a maior data que você tem na sua base. Dessa forma, você trará apenas os dados incrementais, para UPSERT local. No script ./bash/tabela-filial.sh, é possível ver exemplos de como fazer a carga FULL e como fazer tais cargas incrementais.
