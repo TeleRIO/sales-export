@@ -86,7 +86,27 @@ Payload de exemplo para busca filtrada:
 ### VENDA
 A carga completa trará as vendas faturadas ou não desde 01/JAN/2025, das marcas associadas à sua conta. Diariamente, faça duas buscas. Uma que será pela dt_emissao igual a data de ontem, de forma que você verá todas as vendas do dia anterior. Não armazene esses dados, mas os utilize para buscar os dados incrementais de funcionários e saldo dos produtos. Em seguida faça a segunda busca, dessa vez pela dt_faturamento igual a data de ontem. Esses são os dados que você deverá armazenar como as vendas efetivadas. Por essa segunda pesquisa, você poderá processar o seu programa de pontos, por exemplo. No script ./bash/tabela-venda.sh, é possível ver exemplos de como fazer a carga FULL e como fazer tais cargas incrementais.
   
-Payload de exemplo para busca filtrada:
+Payload de exemplo para busca filtrada pela data de venda (sugestão de primeira busca):
+```json
+{
+    "query": "venda",
+    "filtros": {
+        "dt_emissao": "20250401"  // string YYYYMMDD
+    }
+}
+```
+
+Payload de exemplo para busca filtrada pelo faturamento da venda (sugestão de segunda busca):
+```json
+{
+    "query": "venda",
+    "filtros": {
+        "dt_faturamento": "20250401"  // string YYYYMMDD
+    }
+}
+```
+
+Payload de exemplo para uma busca qualquer filtrada:
 ```json
 {
     "query": "venda",
@@ -99,6 +119,7 @@ Payload de exemplo para busca filtrada:
     }
 }
 ```
+
 
 ## Exemplo de uso
 A API funciona de forma assíncrona. Primeiro você faz a requisição, indicando qual a tabela, e quais os filtros são aplicáveis. Você receberá como resposta o status de execução da query e seu ID. 
