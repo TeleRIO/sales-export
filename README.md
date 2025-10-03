@@ -114,6 +114,7 @@ Payload de exemplo para uma busca qualquer filtrada:
         "dt_emissao": "20250401",       // string YYYYMMDD
         "dt_faturamento": "20250401",   // string YYYYMMDD
         "codigo_produto": "AA1001001",  // string
+        "ean": "1234567890123",         // string
         "codigo_filial": "0199",        // string
         "codigo_vendedor": "009999"     // string
     }
@@ -137,6 +138,33 @@ Exemplos:
     "query": "venda",
     "filtros": {
         "dt_faturamento_start": "20250401", "dt_faturamento_end": "20250430"   // string YYYYMMDD
+    }
+}
+```
+
+### CONSOLIDADO VENDA
+É possível buscar os números de venda de cada sku, de forma consolidada, indicando o ano e mês. Você pode buscar o ano/mês da venda ou ou ano/mês do faturamento. A falta de definição de mês, seja venda ou faturamento, vai gerar um erro. As quantidades vendidas estarão agrupadas pelo sku, com o código do produto e seu ean.
+
+Payload de exemplo para busca pelo mês da venda:
+```json
+{
+    "query": "consolidado_venda",
+    "filtros": {
+        "mes_emissao": "202509", // string YYYYMM
+        "codigo_produto": "AA1001001",  // string
+        "ean": "1234567890123"         // string
+    }
+}
+```
+
+Payload de exemplo para busca pelo mês do faturamento:
+```json
+{
+    "query": "consolidado_venda",
+    "filtros": {
+        "mes_faturamento": "202509", // string YYYYMM
+        "codigo_produto": "AA1001001",  // string
+        "ean": "1234567890123"         // string
     }
 }
 ```

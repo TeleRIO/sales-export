@@ -2,11 +2,10 @@
 
 #################################################################
 # Busca por vendas específicas:
-#     "dt_emissao": "20250401",
-#     "dt_faturamento": "20250401",
+#     "mes_emissao": "202504",
+#     "mes_faturamento": "202504",
 #     "codigo_produto": "AA1001001",
-#     "codigo_filial": "0199",
-#     "codigo_vendedor": "009999",
+#     "ean": "1234567890123"
 #
 # Os parâmetros de busca são opcionais, ou seja, podem ser passados ou não.
 # Quando combinados, serão sempre aplicados em conjunto com AND na busca.
@@ -92,42 +91,16 @@ execute_query() {
     printf "\n\n"
 }
 
-# Exemplo de payload para primeira carga das vendas, que trará as vendas desde 1/Jan/2025
+# Exemplo de payload de busca do consolidado de venda pelo mês da venda
 # {
-#     "query": "venda"
-# }
-DATA="{ \"query\": \"venda\" }"
-printf "Executando a query venda full\n"
-
-execute_query "$DATA"
-
-# Exemplo de payload de busca por vendas específicas
-# {
-#     "query": "venda",
+#     "query": "consolidado_venda",
 #     "filtros": {
-#         "dt_emissao": "20250401",
-#         "dt_faturamento": "20250401",
-#         "codigo_produto": "AA1001001",
-#         "codigo_filial": "0199",
-#         "codigo_vendedor": "009999",
+#         "mes_emissao": "202504"
 #     }
 # }
 
-DATA="{ \"query\": \"venda\", \"filtros\": { \"codigo_produto\": \"AA1001001\" } }"
-printf "Executando a query venda / Busca Pontual\n"
-
-execute_query "$DATA"
-
-# Exemplo de payload para carga diária incremental - sugestão buscar pela data de faturamento = D-1
-# {
-#     "query": "venda",
-#     "filtros": {
-#         "dt_faturamento": "20250401"
-#     }
-# }
-
-DATA="{ \"query\": \"venda\", \"filtros\": { \"dt_faturamento\": \"20250401\" } }"
-printf "Executando a query venda / Update Semanal Incremental\n"
+DATA="{ \"query\": \"consolidado_venda\", \"filtros\": { \"mes_emissao\": \"202504\" } }"
+printf "Executando a query consolidado venda\n"
 
 execute_query "$DATA"
 
