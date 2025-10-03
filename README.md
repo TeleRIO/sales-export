@@ -120,6 +120,26 @@ Payload de exemplo para uma busca qualquer filtrada:
 }
 ```
 
+Os filtros pelas datas de emissão e faturamento também suportam intervalos. 
+
+Exemplos:
+```json
+{
+    "query": "venda",
+    "filtros": {
+        "dt_emissao_start": "20250401", "dt_emissao_end": "20250430"       // string YYYYMMDD
+    }
+}
+```
+
+```json
+{
+    "query": "venda",
+    "filtros": {
+        "dt_faturamento_start": "20250401", "dt_faturamento_end": "20250430"   // string YYYYMMDD
+    }
+}
+```
 
 ## Exemplo de uso
 A API funciona de forma assíncrona. Primeiro você faz a requisição, indicando qual a tabela, e quais os filtros são aplicáveis. Você receberá como resposta o status de execução da query e seu ID. 
