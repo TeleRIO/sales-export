@@ -84,8 +84,22 @@ Payload de exemplo para busca filtrada:
 ```
 
 ### VENDA
-A carga completa trará as vendas faturadas ou não desde 01/JAN/2025, das marcas associadas à sua conta. Diariamente, faça duas buscas. Uma que será pela dt_emissao igual a data de ontem, de forma que você verá todas as vendas do dia anterior. Não armazene esses dados, mas os utilize para buscar os dados incrementais de funcionários e saldo dos produtos. Em seguida faça a segunda busca, dessa vez pela dt_faturamento igual a data de ontem. Esses são os dados que você deverá armazenar como as vendas efetivadas. Por essa segunda pesquisa, você poderá processar o seu programa de pontos, por exemplo. No script ./bash/tabela-venda.sh, é possível ver exemplos de como fazer a carga FULL e como fazer tais cargas incrementais.
-  
+A carga completa trará as vendas faturadas ou não desde 01/JAN/2025, das marcas associadas à sua conta. Para as cargas diárias incrementais, há possíveis lógicas de ingestão dos dados. Avalie qual é recomendada pra você, conforme sua necessidade.
+
+1. Vendas Faturadas: 
+Diariamente, faça duas buscas. Uma que será pela dt_emissao igual a data de ontem, de forma que você verá todas as vendas do dia anterior. Não armazene esses dados, mas os utilize para buscar os dados incrementais de funcionários e saldo dos produtos. Em seguida faça a segunda busca, dessa vez pela dt_faturamento igual a data de ontem. Esses são os dados que você deverá armazenar. O problema dessa estratégia é a consolidação dos programas de pontos, que geralmente são calculados sobre o período da venda, e não do faturamento. Então, se você tem um programa de pontos, essa estratégia pode não ser a ideal pra você.
+
+2. Vendas Emitidas: 
+Diariamente, faça a busca pela dt_emissao igual a data de ontem e armazene os dados obtidos. Com os contadores de vendas, você poderá processar o seu programa de pontos, que geralmente está associado à data da venda, e não a data de seu faturamento. Como vendas não faturadas ainda não foram entregues aos clientes, os dados de saldo dos produtos em estoque podem te parecer inconsistentes.
+
+3. Vendas Emitidas e Faturadas em Tabelas Separadas:
+Nesse cenário, você quer ter os contadores das vendas e os contadores dos faturamentos separadamente. Então, diariamente, você fará as duas buscas, uma pela dt_emissao igual a data de ontem, e outra pela dt_faturamento igual a data de ontem. Você armazenará os dados de ambas as buscas em tabelas diferentes. Você utilizará os dados de vendas para processar o seu programa de pontos e os dados de faturamento para controle da movimentação de estoque e planejamento do ressuprimento das suas linhas de produtos com a TeleRio.
+
+4. Vendas Emitidas e Faturadas numa Tabela Unificada:
+Nesse cenário, você quer ter os contadores das vendas e os contadores dos faturamentos numa única tabela. Então, diariamente, você fará a busca pela dt_emissao igual a data de ontem, e armazenará os dados obtidos. Numa segunda busca, filtrando pela dt_faturamento igual a data de ontem você trará dados para atualizar os dados que já armazenou antes. Utilize o campo codigo_orcamento como chave, e tuplas relacionadas às vendas, que ainda não tinham data do faturamento, serão gradualmente atualizadas com tais datas e medida que sejam entregues aos clientes.
+
+No script ./bash/tabela-venda.sh, é possível ver exemplos de como fazer a carga FULL e como fazer tais cargas incrementais.
+
 Payload de exemplo para busca filtrada pela data de venda (sugestão de primeira busca):
 ```json
 {
@@ -114,6 +128,7 @@ Payload de exemplo para uma busca qualquer filtrada:
         "dt_emissao": "20250401",       // string YYYYMMDD
         "dt_faturamento": "20250401",   // string YYYYMMDD
         "codigo_produto": "AA1001001",  // string
+        "codigo_orcamento": "00012345", // string
         "ean": "1234567890123",         // string
         "codigo_filial": "0199",        // string
         "codigo_vendedor": "009999"     // string
