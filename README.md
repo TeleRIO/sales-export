@@ -68,6 +68,9 @@ A associação dos funcionários às filiais em que trabalha pode ser obtida pel
 
 ### SALDO_PRODUTO
 Faça a carga inicial completa dos produtos com seus saldos em estoque por filial e cargas incrementais diárias, buscando pelos produtos que foram listados como vendidos na busca das vendas. No script ./bash/tabela-saldo_produto.sh, é possível ver exemplos de como fazer a carga FULL e como fazer tais cargas incrementais.
+
+##### ***ATENÇÃO***
+A coluna `dt_kpi` funciona como filtro e possui o formato YYYYMMDD. A data mais antiga suportada é 20251223. Caso o usuário solicite uma data anterior a essa, o result_set virá vazio.
   
 Payload de exemplo para busca filtrada:
 ```json
@@ -78,7 +81,8 @@ Payload de exemplo para busca filtrada:
         "ean": "1234567890123",        // string
         "descricao": "NomeDoProduto",  // string
         "fabricante": "NomeDoFabricante",  // string
-        "codigo_filial": "0199"        // string
+        "codigo_filial": "0199",       // string
+        "dt_kpi": "20251223"           // string YYYYMMDD
     }
 }
 ```

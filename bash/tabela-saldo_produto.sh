@@ -7,9 +7,13 @@
 #     "descricao": "NomeDoProduto",
 #     "fabricante": "NomeDoFabricante",
 #     "codigo_filial": "0199",
+#     "dt_kpi": "20251223"              (formato YYYYMMDD, data mínima: 20251223)
 #
 # Os parâmetros de busca são opcionais, ou seja, podem ser passados ou não.
 # Quando combinados, serão sempre aplicados em conjunto com AND na busca.
+#
+# IMPORTANTE: A coluna dt_kpi funciona como filtro e suporta apenas datas a partir de 20251223.
+# Se uma data anterior for informada, o result_set virá vazio.
 #
 
 API_ENDPOINT=""
@@ -109,7 +113,8 @@ execute_query "$DATA"
 #         "ean": "1234567890123",
 #         "descricao": "NomeDoProduto",
 #         "fabricante": "NomeDoFabricante",
-#         "codigo_filial": "0199"
+#         "codigo_filial": "0199",
+#         "dt_kpi": "20251223"
 #     }
 # }
 
@@ -120,10 +125,12 @@ execute_query "$DATA"
 
 # Exemplo de payload para carga diária incremental
 # Após carga das vendas, pra todos os produtos que foram faturados buscar por seu código
+# É possível filtrar também pela dt_kpi (formato YYYYMMDD, mínimo: 20251223)
 # {
 #     "query": "saldo_produto",
 #     "filtros": {
-#         "codigo": "AA1001001"
+#         "codigo": "AA1001001",
+#         "dt_kpi": "20251223"
 #     }
 # }
 
