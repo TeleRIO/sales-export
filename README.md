@@ -4,11 +4,14 @@ Nessa área você vai encontrar documentação sobre como utilizar as APIs de ex
 
 ## Entidades
 
-Suportamos 4 entidades nesse momento:
+Suportamos 5 entidades nesse momento:
 - **filial**: busca as filiais da Tele RIO com seu status, código, cnpj, endereço, entre outros dados.
 - **funcionario**: busca todos os funcionarios, ativos ou inativos, com seu status, código, cpf, nome, entre outros dados.
 - **saldo_produto**: busca o saldo de produtos por filial, com seu status, código, nome, entre outros dados.
 - **venda**: busca as vendas realizadas, sumarizadas pelo produto, suas quantidades, filial, vendedor, entre outros dados.
+- **consolidado_venda**: busca a quantidade total vendida de cada sku em um mês, por data de venda ou de faturamento.
+
+Além das entidades, a query especial **docs** devolve o catálogo das queries disponíveis, com seus filtros e colunas. Veja a seção [Catálogo de queries](#catálogo-de-queries-docs).
 
 
 ## Autenticação
@@ -22,6 +25,96 @@ A API tem um limite de uso de 500 requisições por dia, sendo que é possível 
 
 Se você ainda está em fase de desenvolvimento e testes, e tem excedido sua quota de forma recorrente, impedindo seu avanço, peça nossa ajuda, que buscaremos uma solução temporária.
 
+
+## Catálogo de queries (docs)
+A query `docs` devolve a documentação viva da API: quais queries existem, quais filtros cada uma aceita (tipo, formato e forma de comparação), quais regras se aplicam entre os filtros e quais colunas vêm no resultado. Use-a para descobrir queries novas sem depender deste documento.
+
+Diferente das outras queries, `docs` **não é assíncrona**: não executa nada no Athena, não tem `query_exec_id` nem `query_status`, e a resposta vem na própria chamada. Ela exige a mesma ApiKey das demais queries e conta na quota diária de requisições.
+
+Payload para o catálogo completo:
+```json
+{
+    "query": "docs"
+}
+```
+Payload para a documentação de uma única query (a resposta tem o mesmo formato, com uma só query na lista):
+```json
+{
+    "query": "docs",
+    "filtros": { "query": "venda" }
+}
+```
+Se o nome informado em `filtros.query` não existir, a resposta é um erro 400 com a mensagem `Query inválida.`. O script ./bash/docs.sh mostra os dois usos.
+
+Resposta (resumida):
+```json
+{
+  "catalog_version": "a1b2c3d4",
+  "queries": [
+    {
+      "id": "venda",
+      "label": "Vendas",
+      "description": "Itens vendidos por dia, produto, filial e vendedor, desde 01/01/2025.",
+      "category": "vendas",
+      "filters": [
+        {
+          "name": "dt_emissao",
+          "label": "Data de emissão",
+          "type": "date_range",
+          "format": "YYYYMMDD",
+          "params": { "exact": "dt_emissao", "start": "dt_emissao_start", "end": "dt_emissao_end" },
+          "required": false
+        },
+        {
+          "name": "codigo_produto",
+          "label": "Código do produto",
+          "type": "string",
+          "match": "exact",
+          "required": false
+        }
+      ],
+      "rules": [],
+      "output": {
+        "columns": [
+          { "name": "dt_emissao", "type": "string" },
+          { "name": "quantidade", "type": "number" }
+        ],
+        "page_size": 100
+      }
+    }
+  ]
+}
+```
+Campos de cada query:
+- `id`: valor a enviar no campo `query` das requisições.
+- `label`, `description`, `category`: textos descritivos.
+- `filters`: filtros aceitos no objeto `filtros`.
+- `rules`: regras que envolvem mais de um filtro.
+- `output`: colunas do resultado (`columns`, com `name` e `type`), tamanho de página (`page_size`) e, quando existir, uma observação (`note`).
+
+Campos de cada filtro:
+- `name`: nome do parâmetro em `filtros`. Para `date_range`, use os nomes de `params`.
+- `label` e `description`: textos descritivos. A `description` aparece quando há algo a mais a saber, como a comparação sem diferenciar maiúsculas e minúsculas.
+- `type`: `string`, `date`, `date_range`, `month` ou `datetime`. Os tipos `number`, `boolean` e `enum` fazem parte do formato, mas nenhuma query os usa hoje.
+- `format`: formato do valor, `YYYYMMDD` (data), `YYYYMM` (mês) ou `YYYY-MM-DD HH:MM:SS` (timestamp). Todos os valores são enviados como texto.
+- `match`: como o valor é comparado, para filtros `string` e `datetime`:
+
+| match | Comparação |
+|-------|------------|
+| `exact` | igualdade (`=`) |
+| `contains` | o texto contém o valor informado |
+| `suffix` | o texto termina com o valor informado |
+| `gte` | maior ou igual ao valor informado (`>=`) |
+
+- `required`: indica se o filtro é obrigatório.
+- `default`: valor aplicado pelo servidor quando o filtro é omitido. `"today"` é a data de hoje no fuso -03:00.
+- `params` (só em `date_range`): nomes dos parâmetros para data exata (`exact`), início (`start`) e fim (`end`) do intervalo.
+
+Regras (`rules`): o tipo `any_of_required` indica que ao menos um dos filtros listados em `filters` deve ser informado, senão a resposta é um erro 400 com a `message` da regra. Exemplo: `consolidado_venda` exige `mes_emissao` ou `mes_faturamento`.
+
+`catalog_version` é um código curto calculado sobre o catálogo completo, igual nos dois modos de consulta. Ele só muda quando o catálogo muda. Guarde o valor e refaça a consulta ao catálogo apenas quando ele for diferente.
+
+Todos os filtros são opcionais e combinados com AND, salvo o que `required` e `rules` indicarem.
 
 ## Tabelas
 ### FILIAL
@@ -162,7 +255,7 @@ Exemplos:
 ```
 
 ### CONSOLIDADO VENDA
-É possível buscar os números de venda de cada sku, de forma consolidada, indicando o ano e mês. Você pode buscar o ano/mês da venda ou ou ano/mês do faturamento. A falta de definição de mês, seja venda ou faturamento, vai gerar um erro. As quantidades vendidas estarão agrupadas pelo sku, com o código do produto e seu ean.
+É possível buscar os números de venda de cada sku, de forma consolidada, indicando o ano e mês. Você pode buscar o ano/mês da venda ou ano/mês do faturamento. A falta de definição de mês, seja venda ou faturamento, vai gerar um erro. As quantidades vendidas estarão agrupadas pelo sku, com o código do produto e seu ean.
 
 Payload de exemplo para busca pelo mês da venda:
 ```json
@@ -188,8 +281,20 @@ Payload de exemplo para busca pelo mês do faturamento:
 }
 ```
 
+## Erros
+Os erros são devolvidos com o código HTTP e uma mensagem em texto:
+
+| Código | Quando acontece |
+|--------|-----------------|
+| 400 | Query inexistente (`Query inválida.`), `filtros` que não seja um objeto JSON, valor de filtro que não seja texto ou número, ou regra não atendida (ex.: `consolidado_venda` sem `mes_emissao` ou `mes_faturamento`). |
+| 403 | ApiKey inválida, sem fornecedor associado ou sem marcas cadastradas. |
+| 429 | Limite de uso excedido (veja Quotas). |
+| 500 | Erro interno. |
+
+Para evitar surpresas, siga os tipos e formatos indicados no catálogo e envie apenas filtros que existam na query. Hoje, filtros desconhecidos são ignorados, e valores fora do formato ou com mais de 100 caracteres são aceitos. Essa tolerância é temporária: depois de um período de acompanhamento, passarão a ser rejeitados com erro 400, indicando o filtro com problema. Aspas simples nos valores são sempre tratadas como texto.
+
 ## Exemplo de uso
-A API funciona de forma assíncrona. Primeiro você faz a requisição, indicando qual a tabela, e quais os filtros são aplicáveis. Você receberá como resposta o status de execução da query e seu ID. 
+A API funciona de forma assíncrona. Primeiro você faz a requisição, indicando qual a tabela, e quais os filtros são aplicáveis. Você receberá como resposta o ID e o status de execução da query (`query_exec_id` e `query_status`). 
 
 ```bash
 #!/bin/bash
@@ -206,7 +311,7 @@ Resposta:
 ```json
 {
   "query_exec_id": "2396fbae-19f9-11f0-b718-00155d05f688",
-  "status": "QUEUED"
+  "query_status": "QUEUED"
 }
 ```
 
@@ -226,7 +331,7 @@ Resposta:
 ```json
 {
   "query_exec_id": "2396fbae-19f9-11f0-b718-00155d05f688",
-  "status": "SUCCEEDED",
+  "query_status": "SUCCEEDED",
   "page": 1,
   "total_pages": 10,
   "total_results": 1000,
@@ -236,7 +341,7 @@ Resposta:
 }
 ```
 
-Pelos valores de PAGE, TOTAL_PAGES e TOTAL_RESULTS, você consegue saber quantas páginas de dados você tem. Cada página tem por padrão até 100 linhas. Para buscar as próximas páginas, identifique qual página você precisa, repetindo a busca pelo ID da query.
+Pelos valores de `page`, `total_pages` e `total_results`, você consegue saber quantas páginas de dados você tem. Cada página tem por padrão até 100 linhas. Para buscar as próximas páginas, identifique qual página você precisa, repetindo a busca pelo ID da query.
 
 ```bash
 #!/bin/bash
@@ -252,7 +357,7 @@ Resposta:
 ```json
 {
   "query_exec_id": "2396fbae-19f9-11f0-b718-00155d05f688",
-  "status": "SUCCEEDED",
+  "query_status": "SUCCEEDED",
   "page": 2,
   "total_pages": 10,
   "total_results": 1000,
